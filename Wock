@@ -10,42 +10,74 @@ local Window = Fluent:CreateWindow({
     TabWidth = 160,
     Size = UDim2.fromOffset(580, 460),
     Acrylic = true, -- The blur may be detectable, setting this to false disables blur entirely
-    Theme = "Darker",
+    Theme = "Dark",
     MinimizeKey = Enum.KeyCode.LeftControl -- Used when theres no MinimizeKeybind
 })
 
---Fluent provides Lucide Icons https://lucide.dev/icons/ for the tabs, icons are optional
+-- Fluent provides Lucide Icons https://lucide.dev/icons/ for the tabs, icons are optional
 local Tabs = {
     Testing = Window:AddTab({ Title = "Testing", Icon = "hammer" }),
     Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
 }
 
+-- Hand the library over to our managers
+SaveManager:SetLibrary(Fluent)
+InterfaceManager:SetLibrary(Fluent)
+
+-- Ignore keys that are used by ThemeManager.
+SaveManager:IgnoreThemeSettings()
+
+-- You can add indexes of elements the save manager should ignore
+SaveManager:SetIgnoreIndexes({})
+
+-- Set folder locations
+InterfaceManager:SetFolder("FluentScriptHub")
+SaveManager:SetFolder("FluentScriptHub/specific-game")
+
+-- Build settings interface and config section
+InterfaceManager:BuildInterfaceSection(Tabs.Settings)
+SaveManager:BuildConfigSection(Tabs.Settings)
+
 local Options = Fluent.Options
 
-do
+-- FOV Settings and Camera Setup
+local player = game.Players.LocalPlayer
+local camera = game.Workspace.CurrentCamera
+
+-- Function to update FOV
+local function updateFOV(newFOV)
+    camera.FieldOfView = math.clamp(newFOV, 60, 120)
+    print("FOV set to:", newFOV)
+end
+
+-- FOV Slider
+local Slider = Tabs.Testing:AddSlider("Field Of View", {
+    Title = "FOV Slider",
+    Description = "Set FOV Value",
+    Default = 60,
+    Min = 60,
+    Max = 120,
+    Rounding = 1,
+    Callback = function(Value)
+        updateFOV(Value)
+    end
+})
+
+-- Set the initial FOV value
+Slider:SetValue(60)
 
 
-
-    Tabs.Testing:AddParagraph({
-        Title = "WARNING",
-        Content = "This is the only hack on the Menu. Early testing. Use at your own risk."
-    })
-
-    
 -- Speed Slider
 local Slider = Tabs.Testing:AddSlider("Slider", {
     Title = "Speed",
-    Description = "AnyThing Over 24.79 Will Be Blatant Speed Hack",
-    Default = 24.79,
-    Min = 24.79,
+    Description = "AnyThing Over 24 is Blatant",
+    Default = 18,
+    Min = 23.79,
     Max = 100,
     Rounding = 1,
     Callback = function(Value)
         getgenv().Speed = Value
-
-        -- Enable the speed modification
         getgenv().Enabled = true
-
         local players = game:GetService("Players")
         local player = players.LocalPlayer
 
@@ -54,7 +86,6 @@ local Slider = Tabs.Testing:AddSlider("Slider", {
             if getgenv().executed then
                 return
             end
-
             getgenv().executed = true
 
             local mt = getrawmetatable(game)
@@ -89,38 +120,16 @@ local Slider = Tabs.Testing:AddSlider("Slider", {
     end
 })
 
+Slider:OnChanged(function(Value)
+    print("Slider changed:", Value)
+end)
 
-    Slider:OnChanged(function(Value)
-        print("Slider changed:", Value)
-    end)
-
-    Slider:SetValue(3)
+Slider:SetValue(3)
 
 
-end
--- Addons:
--- SaveManager (Allows you to have a configuration system)
--- InterfaceManager (Allows you to have a interface managment system)
 
--- Hand the library over to our managers
-SaveManager:SetLibrary(Fluent)
-InterfaceManager:SetLibrary(Fluent)
 
--- Ignore keys that are used by ThemeManager.
--- (we dont want configs to save themes, do we?)
-SaveManager:IgnoreThemeSettings()
 
--- You can add indexes of elements the save manager should ignore
-SaveManager:SetIgnoreIndexes({})
-
--- use case for doing it this way:
--- a script hub could have themes in a global folder
--- and game configs in a separate folder per game
-InterfaceManager:SetFolder("FluentScriptHub")
-SaveManager:SetFolder("FluentScriptHub/specific-game")
-
-InterfaceManager:BuildInterfaceSection(Tabs.Settings)
-SaveManager:BuildConfigSection(Tabs.Settings)
 
 
 Window:SelectTab(1)
@@ -132,5 +141,5 @@ Fluent:Notify({
 })
 
 -- You can use the SaveManager:LoadAutoloadConfig() to load a config
--- which has been marked to be one that auto loads!
 SaveManager:LoadAutoloadConfig()
+print("!WockWARE 0N T0P!")
